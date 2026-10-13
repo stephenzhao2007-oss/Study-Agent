@@ -1,0 +1,78 @@
+{
+  "plan": {
+    "overview": "First learn how to compute the truth value of a compound formula. Then compare formulas across every possible assignment to establish or refute logical equivalence. These two lessons demonstrate the software pipeline using illustrative notes.",
+    "units": [
+      {
+        "title": "Propositions and truth tables",
+        "learning_objectives": ["Evaluate negation, conjunction, and inclusive disjunction.", "Build the complete truth table for a formula with two variables."],
+        "prerequisites": [],
+        "source_ids": ["$PAGE_1", "$PAGE_2", "$PAGE_3"]
+      },
+      {
+        "title": "Equivalence and counterexamples",
+        "learning_objectives": ["Verify an equivalence using all truth assignments.", "Disprove an equivalence using one assignment where the formulas differ."],
+        "prerequisites": ["Propositions and truth tables"],
+        "source_ids": ["$PAGE_2", "$PAGE_3", "$PAGE_4", "$PAGE_5", "$PAGE_6"]
+      }
+    ],
+    "excluded_sources": []
+  },
+  "lessons": {
+    "Propositions and truth tables": {
+      "learning_objectives": ["Evaluate negation, conjunction, and inclusive disjunction.", "Build the complete truth table for a formula with two variables."],
+      "prerequisites": "No earlier logic lesson is required. We work in classical two-valued propositional logic: each proposition is assigned true or false.",
+      "big_picture": {"markdown": "A truth table makes the meaning of a compound formula explicit. Instead of deciding whether the formula sounds plausible, evaluate it under every assignment to its variables. This gives a foundation for the next lesson on equivalence.", "source_ids": ["$PAGE_1", "$PAGE_3"]},
+      "definitions_and_notation": [
+        {"term_or_symbol": "p, q, T, F", "explanation": "The letters p and q denote propositions. T means true and F means false.", "source_ids": ["$PAGE_1"]},
+        {"term_or_symbol": "¬p", "explanation": "Negation reverses the truth value of p: true becomes false, and false becomes true.", "source_ids": ["$PAGE_2"]},
+        {"term_or_symbol": "p ∧ q and p ∨ q", "explanation": "Conjunction (∧) requires both inputs to be true. Inclusive disjunction (∨) requires at least one input to be true; both may be true.", "source_ids": ["$PAGE_2"]}
+      ],
+      "core_explanation": {
+        "markdown": "Start by identifying the distinct variables. With p and q, use four rows: (T,T), (T,F), (F,T), and (F,F). Each row is one complete assignment. The order of these rows is a convention; what matters is including all four without repetition.\n\nNext, work from the smallest subformulas outward. In ¬(p ∧ q), the parentheses tell us that the conjunction is evaluated before its negation. Write a column for p ∧ q. Only its first row is true because that is the only assignment where both inputs are true. Its other three rows are false.\n\nFinally, negate that intermediate column. Each T becomes F and each F becomes T. You now have the value of the whole formula for every assignment. Keep the intermediate column visible: it makes the computation easy to check and makes errors easier to locate. This is a direct application of the definitions, rather than a new rule that must be memorized.\n\nInclusive disjunction differs from conjunction in one crucial condition: one true input is sufficient. If both inputs are true, their disjunction remains true.",
+        "source_ids": ["$PAGE_1", "$PAGE_2", "$PAGE_3"]
+      },
+      "worked_examples": [{
+        "title": "Evaluate ¬(p ∧ q)", "origin": "source",
+        "problem": "Construct a truth table for ¬(p ∧ q).",
+        "solution": "Compute the conjunction first and negate it in the final column.\n\n| p | q | p ∧ q | ¬(p ∧ q) |\n|---|---|---|---|\n| T | T | T | F |\n| T | F | F | T |\n| F | T | F | T |\n| F | F | F | T |\n\nFor example, on the second row, p is true and q is false. The conjunction is therefore false, so its negation is true. The result is F,T,T,T in the stated row order.",
+        "source_ids": ["$PAGE_2", "$PAGE_3"]
+      }],
+      "common_mistakes": ["Treating ∨ as exclusive or: p ∨ q is also true when both p and q are true.", "Negating only p in ¬(p ∧ q): the parentheses make the entire conjunction the input to negation.", "Omitting an assignment: include all four rows before drawing a general conclusion."],
+      "method_guide": "List the variables, enumerate every assignment, identify the innermost subformulas, compute one column at a time, and evaluate the outermost connective last.",
+      "recap": "Truth tables apply the definitions of the connectives to every assignment. Parentheses determine which expression is evaluated first. For ¬(p ∧ q), the final column is F,T,T,T.",
+      "unresolved_source_problems": []
+    },
+    "Equivalence and counterexamples": {
+      "learning_objectives": ["Verify an equivalence using all truth assignments.", "Disprove an equivalence using one assignment where the formulas differ."],
+      "prerequisites": "You need the truth-table meanings of negation, conjunction, and inclusive disjunction. The previous lesson computed ¬(p ∧ q) as F,T,T,T in the row order (T,T), (T,F), (F,T), (F,F).",
+      "big_picture": {"markdown": "Logical equivalence compares two formulas across all assignments, not merely under one circumstance. To prove equivalence, every corresponding result must agree. To disprove it, a single disagreement is sufficient.", "source_ids": ["$PAGE_4", "$PAGE_6"]},
+      "definitions_and_notation": [
+        {"term_or_symbol": "A ≡ B", "explanation": "A and B denote formulas. The notation A ≡ B says they have the same truth value under every assignment to their variables.", "source_ids": ["$PAGE_4"]},
+        {"term_or_symbol": "Counterexample assignment", "explanation": "An assignment making the compared formulas have different truth values. One such assignment disproves their equivalence.", "source_ids": ["$PAGE_6"]},
+        {"term_or_symbol": "¬, ∧, ∨", "explanation": "These denote negation, conjunction, and inclusive disjunction respectively. The variables p and q denote propositions.", "source_ids": ["$PAGE_2"]}
+      ],
+      "core_explanation": {
+        "markdown": "The definition of equivalence contains a universal requirement: the two formulas agree for every assignment. For two variables, a truth table checks this by enumerating all four possibilities and evaluating both formulas on the same rows. Matching columns then establish the equivalence because there is no remaining assignment to check.\n\nApply this to De Morgan's law, ¬(p ∧ q) ≡ ¬p ∨ ¬q. The previous lesson computed the left-hand column. For the right-hand column, negate p and q separately and then use inclusive disjunction. The two columns are F,T,T,T, so they agree in every case. This establishes the displayed equivalence within classical two-valued logic.\n\nDisproving equivalence uses the same definition in a different way. If agreement is required everywhere, then one place where agreement fails defeats the claim. You may stop after finding a counterexample; completing all remaining rows is unnecessary for that purpose. However, one matching row cannot prove equivalence because the other rows might still disagree.\n\nThe choice of connective matters. Replacing the disjunction on the right of De Morgan's law with conjunction produces a different formula. A mixed assignment, where one variable is true and the other false, exposes the difference.",
+        "source_ids": ["$PAGE_2", "$PAGE_3", "$PAGE_4", "$PAGE_5", "$PAGE_6"]
+      },
+      "worked_examples": [
+        {
+          "title": "Verify De Morgan's law", "origin": "source",
+          "problem": "Show that ¬(p ∧ q) ≡ ¬p ∨ ¬q.",
+          "solution": "Evaluate both formulas on the same assignments.\n\n| p | q | ¬(p ∧ q) | ¬p | ¬q | ¬p ∨ ¬q |\n|---|---|---|---|---|---|\n| T | T | F | F | F | F |\n| T | F | T | F | T | T |\n| F | T | T | T | F | T |\n| F | F | T | T | T | T |\n\nThe first and final formula columns agree in all four rows. These are all assignments to p and q, so the formulas are equivalent by definition.",
+          "source_ids": ["$PAGE_4", "$PAGE_5"]
+        },
+        {
+          "title": "Reject an incorrect connective", "origin": "source",
+          "problem": "Disprove ¬(p ∧ q) ≡ ¬p ∧ ¬q.",
+          "solution": "Set p=T and q=F. On the left, p ∧ q is false, so ¬(p ∧ q) is true. On the right, ¬p is false and ¬q is true, so their conjunction is false. The formulas disagree under this assignment; therefore they are not equivalent.",
+          "source_ids": ["$PAGE_6"]
+        }
+      ],
+      "common_mistakes": ["Claiming equivalence after one matching row: the definition requires agreement on every assignment.", "Computing the two tables using different row orders and comparing positions without checking assignments.", "Negating a conjunction without changing ∧ to ∨ in De Morgan's law; the counterexample shows why this fails."],
+      "method_guide": "To prove equivalence, compare complete truth-table columns using matching assignments. To disprove equivalence, identify and explain one assignment giving different final values.",
+      "recap": "Equivalence requires universal agreement. A complete matching truth table proves it for the variables considered, while one differing assignment disproves it. De Morgan's law uses disjunction between the negated inputs.",
+      "unresolved_source_problems": []
+    }
+  }
+}

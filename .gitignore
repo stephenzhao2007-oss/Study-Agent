@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+# Credentials and local configuration
+.env
+.env.*
+!.env.example
+# Personal databases
+*.db
+*.db-*
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.sqlite3-*
+# Generated and private inputs
+/output/
+/demo_output/
+/logs/
+/uploads/
+/private/
+/course_materials/
+*.pdf
+*.ppt
+*.pptx
+*.log
+*.zip
+*.bak
+# Review other text files before staging; these patterns cannot detect private content.
