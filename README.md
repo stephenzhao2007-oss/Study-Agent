@@ -1,89 +1,99 @@
 # Study Agent
 
-A modular Python study-workflow prototype that turns selected lecture material into saved, source-referenced lessons. The wider project aims to connect assessment priorities, teaching, active recall, practice exams, and progress tracking in one application.
+**Turn lecture notes into structured lessons—and resume where you left off when generation is interrupted.**
 
-**Status: terminal prototype.** A live five-page lecture test produced three saved lessons and recovered from an interrupted run. Human review identified content errors and damaged notation, so lesson accuracy remains under evaluation. This is not yet a deployed web app or a validated tutoring product.
+Study Agent is a Python command-line application that organizes PDF, text, and Markdown lecture material into lessons with explanations, worked examples, and source-page references. It combines LLM generation with schema validation, persistent checkpoints, and bounded error recovery.
 
-## What works today
+Built to support university study and explore how to make an AI workflow observable, testable, and recoverable.
 
-- Load PDF, UTF-8 text, or Markdown with stable source-page identifiers.
-- Organize selected material into conceptual lesson units and record excluded pages.
-- Generate explanations, definitions, worked examples, common mistakes, and recaps.
-- Validate response structure and source-ID membership with Pydantic and Python.
-- Save readable Markdown and structured JSON, with checkpoints for interrupted runs.
-- Reuse unchanged-input checkpoints instead of generating the same lessons again.
-- Read an existing SQLite assignments table and optionally record linked lesson runs.
-- Space live model calls, respect provider retry timing, and bound correction attempts.
-- Run an explicitly prerecorded offline demo without an API key.
+**Stack:** Python · Pydantic · SQLite · LiteLLM · Groq · pypdf  
+**Status:** Working CLI prototype; lesson accuracy and grouping remain under evaluation.
 
-The earlier priority-extraction script is a separate working prototype. It extracts one deliverable, computes urgency/impact, and writes `curriculum.db`. The lesson package reads its schema; automatic assessment-to-lecture mapping has not been implemented. The original priority script is not included in the initial lesson-package ZIP.
+## See the result
+
+* !\[Offline demo](docs/media/demo-terminal.png)
+* [Example input: illustrative logic notes](examples/demo_lecture.md)
+* [Example output: a complete lesson](examples/demo_lesson.md)
+* Run the offline demo below to reproduce the file pipeline without an API key.
+
+The offline demo uses prerecorded responses. It demonstrates source loading, validation, rendering, and persistence; it is not a live model-quality benchmark.
+
+## What it does
+
+* **Organizes lecture material:** creates lesson units and records reasons for excluded pages.
+* **Produces usable study files:** saves objectives, definitions, explanations, worked examples, common mistakes, and recaps as Markdown and JSON.
+* **Tracks source pages:** associates lesson content with identifiers derived from the supplied sources.
+* **Recovers from interruptions:** saves completed lessons and reuses validated checkpoints on an unchanged rerun.
+* **Handles model failures:** validates response structure, makes bounded correction attempts, and spaces requests to reduce rate-limit failures.
+* **Links to assessment priorities:** optionally reads an existing SQLite assignments database and records lesson runs without changing stored priority scores.
+
+## Engineering decisions
+
+|Challenge|Approach|
+|-|-|
+|A model response can omit fields or contain malformed JSON|Supply a JSON schema, validate with Pydantic, and allow a bounded correction attempt.|
+|A run can fail after producing useful work|Save per-lesson checkpoints and check their integrity before reuse.|
+|Repeated calls can hit provider limits|Space requests, use provider retry timing when available, and cap request attempts.|
+|Changing a source can make saved work stale|Include source content and relevant settings in the run identity.|
+|Pipeline behavior needs repeatable tests|Substitute prerecorded responses and simulated failures while exercising real file and SQLite operations.|
+
+Ordinary Python coordinates the workflow. The conceptual planner and lesson writer use the model through one shared client. See the [architecture and module map](docs/architecture.md).
 
 ## Quick start
 
-From the project directory on Windows CMD:
+From Windows CMD, with Git and Python installed:
 
 ```bat
+git clone https://github.com/stephenzhao2007-oss/Study-Agent.git
+cd Study-Agent
 py -m pip install -r requirements.txt
 py study.py demo
 ```
 
-The demo uses bundled illustrative notes and prerecorded responses. It prints the output path and makes no model request.
+The demo prints the path to `lessons.md`. Open that file to read the output. Run the same command again to see completed work reused from cache.
 
-For live generation, set `GROQ_API_KEY` in your environment, then run:
+### Generate from your own notes
+
+Set `GROQ\_API\_KEY` in your environment, then run:
 
 ```bat
 py study.py doctor
 py study.py generate --course "CS 245" --source "lecture.pdf" --pages 1-5 --max-output-tokens 3000
 ```
 
-Supply your own permitted lecture material. The sample PDF is not part of the repository. Windows may hide filename extensions.
+Replace `lecture.pdf` with your own source file. `doctor` checks the local setup without making an API request. The default model configured in the code is `groq/openai/gpt-oss-20b`; `STUDY\_MODEL` can select another supported Groq model. Provider access and quotas depend on your account.
 
-The default model is `groq/openai/gpt-oss-20b`, accessed through LiteLLM. `STUDY_MODEL` overrides the model string. Availability and quotas depend on the provider/account; the code does not change billing settings. The current client conservatively spaces live requests by 65 seconds after successful calls, so visible waits are expected.
+The current client waits 65 seconds between successful live requests. If a run stops, rerun the same command to resume completed work. See [terminal usage](docs/running.md) for extraction checks, page selection, and database options.
 
-To connect an existing priority database:
-
-```bat
-py study.py tasks --db "%USERPROFILE%\curriculum.db"
-py study.py generate --db "%USERPROFILE%\curriculum.db" --assignment-id 1 --source "lecture.pdf"
-```
-
-Use the correct assignment ID and matching course material. Standalone `--course` runs do not update the assignment database.
-
-## Architecture
-
-The command interface calls a Python orchestration service. Source extraction and database/file operations use ordinary Python. The conceptual planner and lesson generator call the model through a shared client. Modules are units of code responsibility, not independent running agents.
-
-See the [architecture and file map](docs/architecture.md) for the exact flow and comparison with the original scripts.
-
-## Tests and evidence
+## Testing
 
 ```bat
 py -m unittest discover -s tests -v
 ```
 
-The original package contains 23 regression tests. `tests/test_rate_limits.py`, supplied with this documentation kit, retains six additional client checks previously run separately, bringing the suite to 29 when used with the patched client. Tests simulate model responses and do not require a live key.
+The suite contains **29 automated tests** covering source selection, output persistence, checkpoint recovery, database preservation, response validation, and retry behavior. Tests use simulated model responses and require no API calls or real retry delays.
 
-These tests cover pipeline execution and failure handling, not the correctness of generated teaching. Live generation was demonstrated in a user-reported Windows run with Python 3.14.5, Pydantic 2.13.4, LiteLLM 1.100.1, and pypdf 6.19.0. This is one observed environment, not a broad compatibility guarantee. A GitHub-hosted test run has not yet been configured or claimed.
+The [test guide](docs/testing.md) maps every test to the behavior it checks. These tests verify software behavior; they do not establish that generated teaching is factually correct.
 
-## Known limitations
+A live five-page trial produced three lessons and resumed after an interruption. Human review also found mathematical errors and damaged notation, informing the evaluation work below.
 
-- The PDF reader extracts text; it does not interpret diagrams or handwriting, and mathematical notation can be damaged.
-- A source ID verifies which page was supplied, not whether that page supports a claim.
-- Generated output has contained false mathematical statements and incorrect law labels. Human content review is required.
-- Lesson grouping can be too fine-grained. The observed five-page test excluded two pages and made three one-page lessons; the exclusions still need comparison with the original slides.
-- Rate limits are mitigated, not eliminated. Long lectures may need smaller selections. No automatic token-aware batching or usage-cost ledger exists yet.
-- `needs_review` includes a general PDF extraction warning and is not a measure of mastery. `complete` refers to artifact generation, not educational correctness.
-- Active-recall interaction, grading, mastery/review scheduling, practice exams, UI, and hosting remain planned work.
+## Current limitations and next steps
 
-## Documentation
+* PDF text extraction can lose mathematical notation and does not interpret images or handwriting.
+* Source-reference checks establish that a cited page was supplied, not that it supports the model's claim. Generated lessons need content review.
+* Lesson grouping and excluded-page decisions need evaluation on representative lectures.
+* Priority ingestion is currently a separate prototype. Lecture-to-assessment mapping remains manual.
+* Active recall, answer assessment, review scheduling, and a user interface are planned features.
 
-- [Product scope and milestones](docs/project_scope.md)
-- [Architecture, file responsibilities, and data flow](docs/architecture.md)
-- [Retrospective debugging log](docs/debugging.md)
-- [Git/GitHub publishing and daily workflow](docs/development.md)
-- [Candidate issues and acceptance criteria](docs/backlog.md)
-- [Terminal commands](docs/running.md)
+Near-term work focuses on lesson correctness checks, clearer grouping, and reproducible testing across operating systems. See the [backlog](docs/backlog.md).
 
-## Development approach
+## Development notes
 
-This project has been developed with AI assistance for implementation, explanations, and debugging. Development records distinguish observed failures, suspected causes, verified changes, and open questions. The history documented before the first Git commit is retrospective; it is not fabricated commit history.
+* [Architecture](docs/architecture.md)
+* [Test coverage and execution](docs/testing.md)
+* [Debugging history](docs/debugging.md)
+* [Windows SQLite cleanup investigation](docs/issues/windows-sqlite-cleanup.md)
+* [Project scope](docs/project_scope.md)
+
+Developed with AI assistance for implementation and debugging. The project records observed failures, fixes, and verification evidence; pre-Git development notes are retrospective.
+
