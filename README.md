@@ -11,7 +11,7 @@ Built to support university study and explore how to make an AI workflow observa
 
 ## See the result
 
-* !\[Offline demo](docs/media/demo-terminal.png)
+* ![Offline demo](docs/media/demo-terminal.png)
 * [Example input: illustrative logic notes](examples/demo_lecture.md)
 * [Example output: a complete lesson](examples/demo_lesson.md)
 * Run the offline demo below to reproduce the file pipeline without an API key.
